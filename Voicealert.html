@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafePath AI - Voice Alert System</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(circle at top left, #060c21, #0f1331);
+      color: #fff;
+    }
+
+    header {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 2rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 15px #00ffff;
+    }
+
+    #map {
+      height: 420px;
+      width: 90%;
+      max-width: 900px;
+      margin: 2rem auto;
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0,255,255,0.3);
+    }
+
+    button {
+      display: block;
+      margin: 1rem auto;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #00e0ff, #00ff99);
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0,255,255,0.4);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <header>🔊 SafePath AI - Voice Alert System</header>
+  <button id="startBtn">Start Voice Alerts</button>
+  <div id="map"></div>
+
+  <script>
+    const map = L.map('map').setView([13.0827, 80.2707], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const dangerZones = [
+      { lat: 13.075, lng: 80.265, level: 'High Risk' },
+      { lat: 13.065, lng: 80.26, level: 'Medium Risk' },
+      { lat: 13.055, lng: 80.252, level: 'Low Risk' }
+    ];
+
+    // Draw danger zones
+    dangerZones.forEach(zone => {
+      L.circle([zone.lat, zone.lng], {
+        color: zone.level === 'High Risk' ? 'red' : zone.level === 'Medium Risk' ? 'orange' : 'yellow',
+        fillOpacity: 0.4,
+        radius: 200
+      }).addTo(map).bindPopup(`${zone.level} Zone`);
+    });
+
+    // Voice alert system
+    const synth = window.speechSynthesis;
+    let voiceEnabled = false;
+
+    function speak(message) {
+      if (!voiceEnabled) return;
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.pitch = 1.2;
+      utterance.rate = 1;
+      utterance.volume = 1;
+      synth.speak(utterance);
+    }
+
+    // Simulate user movement & check for nearby zones
+    function simulateMovement() {
+      const path = [
+        [13.0827, 80.2707],
+        [13.075, 80.265],
+        [13.065, 80.26],
+        [13.055, 80.252]
+      ];
+
+      let i = 0;
+      const marker = L.marker(path[i]).addTo(map).bindPopup('User Location');
+
+      const interval = setInterval(() => {
+        if (i >= path.length) return clearInterval(interval);
+
+        const [lat, lng] = path[i];
+        marker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
+
+        dangerZones.forEach(zone => {
+          const distance = map.distance([lat, lng], [zone.lat, zone.lng]);
+          if (distance < 250) {
+            speak(`Warning! Approaching a ${zone.level} area.`);
+          }
+        });
+
+        i++;
+      }, 4000);
+    }
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      voiceEnabled = true;
+      speak('SafePath AI voice alert activated. Stay alert and travel safely.');
+      simulateMovement();
+    });
+  </script>
+</body>
+</html>
