@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafePath AI - Custom Alert Settings</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(circle at top, #060c21, #0f1331);
+      color: #fff;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    header {
+      font-size: 2rem;
+      padding: 1.5rem;
+      text-shadow: 0 0 15px #00ffff;
+      letter-spacing: 1px;
+    }
+
+    .settings-container {
+      width: 90%;
+      max-width: 700px;
+      margin: 2rem auto;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 0 25px rgba(0,255,255,0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .setting-group {
+      margin: 1.5rem 0;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #00e0ff;
+      text-shadow: 0 0 8px #00ffff;
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #00e0ff, #00ff99);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    select, input[type=number] {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 10px;
+      border: none;
+      background: rgba(0, 0, 0, 0.5);
+      color: #00ffff;
+      font-size: 1rem;
+      outline: none;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 10px rgba(0,255,255,0.2);
+    }
+
+    button {
+      background: linear-gradient(90deg, #00e0ff, #00ff99);
+      border: none;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 20px rgba(0,255,255,0.3);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0,255,255,0.5);
+    }
+
+    footer {
+      margin-top: 2rem;
+      opacity: 0.8;
+      color: #00ffff;
+    }
+  </style>
+</head>
+<body>
+  <header>🎛️ SafePath AI - Custom Alert Settings</header>
+
+  <div class="settings-container">
+    <div class="setting-group">
+      <label for="voiceSelect">Choose AI Voice</label>
+      <select id="voiceSelect"></select>
+    </div>
+
+    <div class="setting-group">
+      <label for="pitchRange">Voice Pitch</label>
+      <input type="range" id="pitchRange" min="0.5" max="2" step="0.1" value="1">
+      <p>Current Pitch: <span id="pitchValue">1.0</span></p>
+    </div>
+
+    <div class="setting-group">
+      <label for="rateRange">Voice Speed</label>
+      <input type="range" id="rateRange" min="0.5" max="2" step="0.1" value="1">
+      <p>Current Speed: <span id="rateValue">1.0</span></p>
+    </div>
+
+    <div class="setting-group">
+      <label for="alertRange">Danger Alert Distance (meters)</label>
+      <input type="number" id="alertRange" min="100" max="1000" value="250">
+    </div>
+
+    <button id="saveSettings">Save Settings</button>
+  </div>
+
+  <footer>© 2025 SafePath AI | Smart Alert Customization System</footer>
+
+  <script>
+    const voiceSelect = document.getElementById('voiceSelect');
+    const pitchRange = document.getElementById('pitchRange');
+    const rateRange = document.getElementById('rateRange');
+    const pitchValue = document.getElementById('pitchValue');
+    const rateValue = document.getElementById('rateValue');
+
+    function populateVoices() {
+      const voices = window.speechSynthesis.getVoices();
+      voiceSelect.innerHTML = '';
+      voices.forEach((voice, i) => {
+        const option = document.createElement('option');
+        option.value = voice.name;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        voiceSelect.appendChild(option);
+      });
+    }
+
+    populateVoices();
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+
+    pitchRange.addEventListener('input', () => pitchValue.textContent = pitchRange.value);
+    rateRange.addEventListener('input', () => rateValue.textContent = rateRange.value);
+
+    document.getElementById('saveSettings').addEventListener('click', () => {
+      const settings = {
+        voice: voiceSelect.value,
+        pitch: pitchRange.value,
+        rate: rateRange.value,
+        alertRange: document.getElementById('alertRange').value
+      };
+
+      localStorage.setItem('safePathSettings', JSON.stringify(settings));
+      const msg = new SpeechSynthesisUtterance('Settings saved successfully!');
+      msg.pitch = parseFloat(settings.pitch);
+      msg.rate = parseFloat(settings.rate);
+      msg.voice = speechSynthesis.getVoices().find(v => v.name === settings.voice);
+      speechSynthesis.speak(msg);
+
+      alert('✅ Settings saved! Your preferences will be used in SafePath AI Voice Alerts.');
+    });
+  </script>
+</body>
+</html>
