@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafePath AI - Advanced Interface</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(circle at top, #060a1f, #000);
+      color: #00eaff;
+      margin: 0;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 2rem;
+      color: #fff;
+      text-shadow: 0 0 20px #00ffff;
+      background: linear-gradient(90deg, #00eaff, #0066ff, #00ffb3);
+      background-size: 200% 200%;
+      animation: glow 5s infinite alternate;
+    }
+
+    @keyframes glow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    .main-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      width: 95%;
+      margin-top: 1.5rem;
+    }
+
+    .control-panel, .info-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      border-radius: 15px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+      min-width: 300px;
+      flex: 1;
+      max-width: 500px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #00eaff;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid rgba(0, 255, 255, 0.5);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #00ffff;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #00eaff, #0066ff, #00ffb3);
+      background-size: 200% 200%;
+      color: #fff;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      animation: glow 5s infinite alternate;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    #map {
+      height: 450px;
+      width: 95%;
+      margin-top: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+    }
+
+    .info-section {
+      margin-top: 1rem;
+    }
+
+    .panel-title {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00eaff;
+    }
+
+    .bar-container {
+      background: rgba(0, 255, 255, 0.1);
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      height: 15px;
+    }
+
+    .bar {
+      height: 15px;
+      width: 0%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #00ffb3, #00eaff, #0078ff);
+      background-size: 300% 300%;
+      animation: moveGradient 3s infinite alternate;
+      transition: width 1s ease;
+    }
+
+    @keyframes moveGradient {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    .data-value {
+      text-align: right;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <header>SafePath AI - Advanced Safety Interface</header>
+
+  <div class="main-container">
+    <div class="control-panel">
+      <label for="start">Current Location</label>
+      <input id="start" placeholder="Enter current location">
+
+      <label for="end">Destination</label>
+      <input id="end" placeholder="Enter destination">
+
+      <button onclick="getSafeRoute()">Find Safest Route</button>
+    </div>
+
+    <div class="info-panel">
+      <div class="panel-title">Real-time Safety Metrics</div>
+      <div class="info-section">
+        <div>Safety Index</div>
+        <div class="bar-container"><div class="bar" id="safety-bar"></div></div>
+        <div class="data-value" id="safety-value">0%</div>
+      </div>
+      <div class="info-section">
+        <div>AI Confidence</div>
+        <div class="bar-container"><div class="bar" id="confidence-bar"></div></div>
+        <div class="data-value" id="confidence-value">0%</div>
+      </div>
+      <div class="info-section">
+        <div>Traffic Density</div>
+        <div class="bar-container"><div class="bar" id="traffic-bar"></div></div>
+        <div class="data-value" id="traffic-value">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    const map = L.map('map').setView([13.0827, 80.2707], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function animateBar(id, value) {
+      const bar = document.getElementById(id);
+      const valueText = document.getElementById(id.replace('bar', 'value'));
+      bar.style.width = value + '%';
+      valueText.innerText = value + '%';
+    }
+
+    function getSafeRoute() {
+      const start = document.getElementById('start').value;
+      const end = document.getElementById('end').value;
+      if (!start || !end) {
+        alert('Please enter both locations');
+        return;
+      }
+
+      alert(`Analyzing safest route from ${start} to ${end}...`);
+
+      const startMarker = L.marker([13.0827, 80.2707]).addTo(map).bindPopup('Start: ' + start);
+      const endMarker = L.marker([13.05, 80.25]).addTo(map).bindPopup('Destination: ' + end);
+      const route = L.polyline([
+        [13.0827, 80.2707],
+        [13.07, 80.26],
+        [13.06, 80.255],
+        [13.05, 80.25]
+      ], { color: '#00ffff', weight: 6, opacity: 0.8 }).addTo(map);
+
+      map.fitBounds(route.getBounds());
+
+      // Mock animated data
+      animateBar('safety-bar', 86);
+      animateBar('confidence-bar', 93);
+      animateBar('traffic-bar', 45);
+    }
+  </script>
+</body>
+</html>
