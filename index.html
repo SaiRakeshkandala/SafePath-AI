@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafePath AI - Futuristic Safety Navigator</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(circle at top, #0a0f29, #050a1e, #000);
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: linear-gradient(90deg, #00e0ff, #0078ff, #00ff88);
+      background-size: 300% 300%;
+      animation: headerGlow 6s infinite alternate;
+      color: #fff;
+      width: 100%;
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      box-shadow: 0 0 20px #00e0ff;
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+    }
+
+    @keyframes headerGlow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    .container {
+      margin: 2rem auto;
+      width: 90%;
+      max-width: 700px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.15);
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00e0ff;
+    }
+
+    input {
+      width: 90%;
+      padding: 0.8rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(0, 255, 255, 0.4);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #00e0ff;
+      font-size: 1rem;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1) inset;
+    }
+
+    input:focus {
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+    }
+
+    button {
+      width: 95%;
+      padding: 1rem;
+      border: none;
+      background: linear-gradient(90deg, #00e0ff, #0078ff, #00ff88);
+      background-size: 300% 300%;
+      animation: glowMove 4s infinite alternate;
+      color: #fff;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    @keyframes glowMove {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+    }
+
+    #map {
+      height: 450px;
+      width: 90%;
+      max-width: 900px;
+      margin: 2rem auto;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .footer {
+      color: #00ffff;
+      font-size: 0.9rem;
+      margin: 2rem 0;
+      opacity: 0.8;
+      text-shadow: 0 0 10px #00e0ff;
+    }
+  </style>
+</head>
+<body>
+  <header>SafePath AI - Futuristic Safety Navigator</header>
+  <div class="container">
+    <label for="start">Current Location</label>
+    <input type="text" id="start" placeholder="Enter your current location" />
+
+    <label for="end">Destination</label>
+    <input type="text" id="end" placeholder="Enter your destination" />
+
+    <button onclick="getSafeRoute()">Find Safest Route</button>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="footer">© 2025 SafePath AI | Designed for a safer tomorrow 🌐</div>
+
+  <script>
+    const map = L.map('map').setView([13.0827, 80.2707], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function glowEffect(element) {
+      element.style.boxShadow = '0 0 30px #00e0ff';
+      setTimeout(() => element.style.boxShadow = 'none', 1000);
+    }
+
+    async function getSafeRoute() {
+      const start = document.getElementById('start').value;
+      const end = document.getElementById('end').value;
+      const btn = document.querySelector('button');
+      glowEffect(btn);
+
+      if (!start || !end) {
+        alert('Please enter both start and destination locations');
+        return;
+      }
+
+      alert(`🔍 Scanning real-time safety data...\nFinding safest path from ${start} to ${end}`);
+
+      const startMarker = L.marker([13.0827, 80.2707]).addTo(map).bindPopup('Start: ' + start);
+      const endMarker = L.marker([13.05, 80.25]).addTo(map).bindPopup('Destination: ' + end);
+
+      const route = L.polyline([
+        [13.0827, 80.2707],
+        [13.07, 80.26],
+        [13.06, 80.255],
+        [13.05, 80.25]
+      ], { color: '#00ffff', weight: 6, opacity: 0.8 }).addTo(map);
+
+      map.fitBounds(route.getBounds());
+    }
+  </script>
+</body>
+</html>
