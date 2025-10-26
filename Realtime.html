@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafePath AI - Futuristic Safety Companion</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(circle at top left, #060c21, #0f1331);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 2rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 15px #0ff;
+    }
+
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 1rem;
+    }
+
+    .panel {
+      background: rgba(20, 30, 60, 0.7);
+      border: 1px solid rgba(0,255,255,0.3);
+      border-radius: 15px;
+      width: 280px;
+      padding: 1rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(0,255,255,0.3);
+      animation: float 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes float {
+      from { transform: translateY(0px); }
+      to { transform: translateY(-10px); }
+    }
+
+    .panel h3 {
+      text-align: center;
+      color: #00e6e6;
+      margin-bottom: 0.5rem;
+    }
+
+    .bar-container {
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      height: 12px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 10px;
+      width: 0%;
+      background: linear-gradient(90deg, #00ffff, #00ff99);
+      box-shadow: 0 0 15px #00ffff;
+      transition: width 2s ease;
+    }
+
+    #map {
+      height: 420px;
+      width: 90%;
+      max-width: 900px;
+      margin: 2rem auto;
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0,255,255,0.3);
+    }
+
+    .heat-point {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, red, transparent);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.8); opacity: 0.3; }
+    }
+
+  </style>
+</head>
+<body>
+  <header>🚀 SafePath AI - Intelligent Route & Safety Predictor</header>
+
+  <div class="dashboard">
+    <div class="panel" id="safetyPanel">
+      <h3>Safety Index</h3>
+      <div class="bar-container"><div class="bar" id="safetyBar"></div></div>
+      <p style="text-align:center;" id="safetyValue">Loading...</p>
+    </div>
+
+    <div class="panel" id="confidencePanel">
+      <h3>AI Confidence</h3>
+      <div class="bar-container"><div class="bar" id="confidenceBar"></div></div>
+      <p style="text-align:center;" id="confidenceValue">Loading...</p>
+    </div>
+
+    <div class="panel" id="trafficPanel">
+      <h3>Traffic Density</h3>
+      <div class="bar-container"><div class="bar" id="trafficBar"></div></div>
+      <p style="text-align:center;" id="trafficValue">Loading...</p>
+    </div>
+
+    <div class="panel" id="dangerPredictionPanel">
+      <h3>Danger Prediction Zones</h3>
+      <ul id="dangerList" style="list-style:none; padding-left:10px;"></ul>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    const map = L.map('map').setView([13.0827, 80.2707], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const safeRoute = L.polyline([
+      [13.0827, 80.2707],
+      [13.07, 80.26],
+      [13.06, 80.255],
+      [13.05, 80.25]
+    ], { color: 'cyan', weight: 5, opacity: 0.7 }).addTo(map);
+
+    map.fitBounds(safeRoute.getBounds());
+
+    // Animated Bars
+    function animateBars() {
+      const safety = Math.floor(Math.random() * 100);
+      const confidence = Math.floor(Math.random() * 100);
+      const traffic = Math.floor(Math.random() * 100);
+
+      document.getElementById('safetyBar').style.width = safety + '%';
+      document.getElementById('confidenceBar').style.width = confidence + '%';
+      document.getElementById('trafficBar').style.width = traffic + '%';
+
+      document.getElementById('safetyValue').innerText = safety + '%';
+      document.getElementById('confidenceValue').innerText = confidence + '%';
+      document.getElementById('trafficValue').innerText = traffic + '%';
+    }
+
+    // Generate Random Danger Zones
+    function generateDangerZones() {
+      const dangerPoints = [
+        { lat: 13.075, lng: 80.265, level: 'High Risk' },
+        { lat: 13.065, lng: 80.26, level: 'Medium Risk' },
+        { lat: 13.055, lng: 80.252, level: 'Low Risk' }
+      ];
+
+      const list = document.getElementById('dangerList');
+      list.innerHTML = '';
+
+      dangerPoints.forEach((point) => {
+        const li = document.createElement('li');
+        li.textContent = `${point.level} zone near (${point.lat.toFixed(3)}, ${point.lng.toFixed(3)})`;
+        list.appendChild(li);
+
+        const circle = L.circle([point.lat, point.lng], {
+          color: point.level === 'High Risk' ? 'red' : point.level === 'Medium Risk' ? 'orange' : 'yellow',
+          fillOpacity: 0.4,
+          radius: 200
+        }).addTo(map);
+      });
+    }
+
+    // Animate continuously
+    setInterval(animateBars, 4000);
+    generateDangerZones();
+  </script>
+</body>
+</html>
